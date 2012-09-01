@@ -96,7 +96,7 @@ ROOT_URLCONF = 'DiningComments.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'DiningComments.wsgi.application'
 
-TEMPLATE_DIRS = ('/home/kat/PycharmProjects/DiningComments/templates',)
+TEMPLATE_DIRS = ('/app/templates',)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
