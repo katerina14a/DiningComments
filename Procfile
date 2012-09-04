@@ -1,1 +1,1 @@
-web: python app/manage.py collectstatic --noinput; newrelic-admin run-program gunicorn DiningComments.wsgi -b 0.0.0.0:$PORT
+web: python /app/manage.py collectstatic --noinput; newrelic-admin run-program gunicorn DiningComments.wsgi -b 0.0.0.0:$PORT
