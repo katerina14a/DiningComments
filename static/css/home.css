@@ -1,0 +1,15 @@
+#header h1 {
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+.button {
+    font-size: 30px;
+    position: relative;
+    float: left;
+}
+
+#myCarousel {
+    padding: 0 100px;
+}
