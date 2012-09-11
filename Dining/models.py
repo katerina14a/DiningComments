@@ -37,8 +37,14 @@ class Food(models.Model):
     name = models.CharField(max_length=100)
     dietary_restrictions = models.IntegerField(choices=dietary_restrictions_choices)
 
+    def __unicode__(self):
+        return self.name
+
 class Dish(models.Model):
     date = models.DateField()
     meal = models.IntegerField(choices=meal_choices)
     place = models.IntegerField(choices=place_choices)
     food = models.ForeignKey(Food)
+
+    def __unicode__(self):
+        return "%s meal %s, at %s serving %s" % (self.date, self.meal, self.place, self.food.name)
