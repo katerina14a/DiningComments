@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'DiningComments.views.home', name='home'),
     # url(r'^DiningComments/', include('DiningComments.foo.urls')),
     url(r'^$', 'Dining.views.home'),
+    url(r'^fetch_menu/$', 'Dining.views.menus'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

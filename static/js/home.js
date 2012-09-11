@@ -1,17 +1,12 @@
 MenuManager = {
-    menu_counter:0,
-    make_containers:function () {
+    menu_counter: 0,
+    make_menus:function (menus, active) {
+        active = !!active;
         var id = MenuManager.menu_counter++;
-        var dining_commons = [
-            ['Crossroads', 'content1'],
-            ['Cafe 3', 'content2'],
-            ['Foothill', 'content3'],
-            ['Clark Kerr', 'content4']
-        ];
         var container = $('<div class="accordion" id="menu' + id + '"></div>');
-        $.map(dining_commons, function (dining_common, i) {
-            var name = dining_common[0];
-            var content = dining_common[1];
+        $.map(menus, function (menu, i) {
+            var name = menu[0];
+            var food_list = menu[1];
             container.append($(
                 '<div class="accordion-group">' +
                     '<div class="accordion-heading">' +
@@ -21,25 +16,41 @@ MenuManager = {
                     '</div>' +
                     '<div id="menu' + id + 'collapse' + i + '" class="accordion-body collapse ' + (i === 0 ? 'in' : '') + '">' +
                     '<div class="accordion-inner">' +
-                    content +
+                    food_list.join("<br/>") +
                     '</div> ' +
                     '</div> ' +
-                    '</div> '
+                    '</div>'
             ));
         });
-        return container;
-
+        var carousel_item = $('<div class="item' + (active ? ' active' : '') + '"></div>');
+        carousel_item.append(container);
+        return carousel_item;
+    },
+    append_menu: function (menu_obj) {
+        var carousel = $('#menu-carousel');
+        carousel.append(menu_obj);
     }
 };
 
+/*
+ {
+ menus: [
+ [DCName, [Food1, Food2, ...]],
+ ...
+ ],
+ //    next: "IDOfNextMenu",
+ //    prev: "IDOfPrevMenu"
+ }
+ */
+
 $(document).ready(function () {
     // Make menus accordion
-    var carousel = $('#menu-carousel');
-    for (var i = 0; i < 3; i++) {
-        var item = $('<div class="item' + (i === 0 ? ' active' : '') + '"></div>');
-        item.append(MenuManager.make_containers());
-        carousel.append(item);
-    }
+    $.ajax("/fetch_menu", {
+        success: function (data) {
+            var menus_obj = MenuManager.make_menus(data.menus, true);
+            MenuManager.append_menu(menus_obj)
+        }
+    });
     $('.carousel').carousel({
         interval:false
     });
