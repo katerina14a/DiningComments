@@ -145,3 +145,5 @@ LOGGING = {
 
 if os.environ.get('DEVELOPMENT', None):
     from settings_dev import *
+
+print "DATABASE_URL %r" % os.environ.get('DATABASE_URL', 'It doesnt exist!!!')
