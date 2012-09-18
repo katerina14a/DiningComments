@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 
 import dj_database_url
 
-DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
+DATABASES = {'default': dj_database_url.config(default=os.environ.get('DATABASE_URL', 'postgres://localhost'))}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -145,5 +145,3 @@ LOGGING = {
 
 if os.environ.get('DEVELOPMENT', None):
     from settings_dev import *
-
-print "DATABASE_URL %r" % os.environ.get('DATABASE_URL', 'It doesnt exist!!!')
