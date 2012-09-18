@@ -3,6 +3,7 @@
 from urllib2 import urlopen
 from urllib import url2pathname
 from time import localtime
+from django.core.management.base import BaseCommand
 import re, datetime
 from Dining.constants import (
     CROSSROADS,
@@ -16,15 +17,15 @@ from Dining.constants import (
     CARNIVORE,
     VEGETARIAN,
     VEGAN,
-)
+    )
 from Dining.models import Food, Dish
 
 locations = {
-    CROSSROADS  : ["01", "CROSSROADS'"],
-    CAFE_3      : ["03", "CAFE"],
-    FOOTHILL    : ["06", "FOOTHILL'"],
-    CLARK_KERR  : ["04", "CLARK"],
-}
+    CROSSROADS: ["01", "CROSSROADS'"],
+    CAFE_3: ["03", "CAFE"],
+    FOOTHILL: ["06", "FOOTHILL'"],
+    CLARK_KERR: ["04", "CLARK"],
+    }
 
 color_to_type = {
     '800040': VEGAN,
@@ -33,7 +34,7 @@ color_to_type = {
     '000080': VEGETARIAN,
     '0000A0': VEGETARIAN,
     '000000': CARNIVORE,
-}
+    }
 
 def get_url(location, date):
     """Returns a URL (string) for the menu of the DC on the specified date"""
@@ -41,6 +42,7 @@ def get_url(location, date):
     url_template = 'http://services.housing.berkeley.edu/FoodPro/dining/static/DiningMenus.asp?dtCurDate=%s&strCurLocation=%s&strCurLocationName=%s'
     url_args = [date] + locations[location]
     return url_template % tuple(url_args)
+
 
 def get_dates():
     """Returns a list of dates (strings) for which menues are currently offered"""
@@ -57,6 +59,7 @@ def get_dates():
     for i in range(len(date_list)):
         date_list[i] = date_list[i][6:-3]
     return map(url2pathname, date_list)
+
 
 def get_dishes():
     print "Retrieving Menus..."
@@ -77,18 +80,19 @@ def get_dishes():
                         dietary = color_to_type.get(color, CARNIVORE)
                         dishes.append((date, convert_meal(meals_html, meal), location, name, dietary))
                     except ValueError:
-                        print food_data
                         pass
 
-    print "Done."
+    print "Adding to database."
     return dishes
 
+
 def convert_meal(meals, meal):
-    convert_dict = {3: {0: BREAKFAST, 1: LUNCH, 2: DINNER,},
-                    2: {0: BRUNCH, 1: DINNER,},
-                    1: {0: DINNER,}
+    convert_dict = {3: {0: BREAKFAST, 1: LUNCH, 2: DINNER, },
+                    2: {0: BRUNCH, 1: DINNER, },
+                    1: {0: DINNER, }
     }
     return convert_dict[len(meals)][meal]
+
 
 def create_date_obj(date_str):
     date_parts = date_str.split("/")
@@ -99,12 +103,14 @@ def create_date_obj(date_str):
     date_parts = map(lambda x: int(x), date_parts)
     return datetime.date(date_parts[2], date_parts[0], date_parts[1])
 
+
 def sync():
     for dish in get_dishes():
         add_dish(dish)
+    print "Done."
+
 
 def add_dish(dish):
-    print "ADDING"
     date, meal, location, name, dietary = dish
     date = create_date_obj(date)
     try:
@@ -117,3 +123,8 @@ def add_dish(dish):
         Dish.objects.get(date=date, meal=meal, place=location, food=food_object)
     except Dish.DoesNotExist:
         Dish(date=date, meal=meal, place=location, food=food_object).save()
+
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        sync()
