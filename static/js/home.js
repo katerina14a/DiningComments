@@ -13,7 +13,7 @@ MenuManager = {
                     location +
                     '</a>' +
                     '</div>' +
-                    '<div id="menu' + id + 'collapse' + i + '" class="accordion-body collapse ' + (i === 0 ? 'in' : '') + '">' +
+                    '<div id="menu' + id + 'collapse' + i + '" class="accordion-body collapse' + (i === 0 ? ' in' : '') + '">' +
                     '<div class="accordion-inner">' +
                     food_list.join("<br/>") +
                     '</div> ' +
@@ -59,32 +59,75 @@ MenuManager = {
         carousel.prepend(carousel_item);
         return carousel_item;
     },
-    slide_listener:function () {
-        $('#prev-menu').click(function (e) {
-            if ($('.item.active').index() == 0) {
-                // Add placeholder div
-                var placeholder_contents = MenuManager.make_placeholder();
-                var placeholder = MenuManager.prepend_menu(placeholder_contents);
-                MenuManager.fill_placeholder(placeholder, MenuManager.oldest_id, 'prev');
+    show_prev_menu:function () {
+        if ($('.item.active').index() == 0) {
+            // Add placeholder div
+            var placeholder_contents = MenuManager.make_placeholder();
+            var placeholder = MenuManager.prepend_menu(placeholder_contents);
+            MenuManager.fill_placeholder(placeholder, MenuManager.oldest_id, 'prev');
+        }
+        $('#myCarousel').carousel('prev');
+        return false;
+    },
+    show_next_menu:function (e) {
+        if ($('.item.active').index() == $('.item').length - 1) {
+            // Add placeholder div
+            var placeholder_contents = MenuManager.make_placeholder();
+            var placeholder = MenuManager.append_menu(placeholder_contents);
+            MenuManager.fill_placeholder(placeholder, MenuManager.newest_id, 'next');
+        }
+        $('#myCarousel').carousel('next');
+        return false;
+    },
+    listen:function () {
+        // Listen to select a different menu side to side,
+        $('#prev-menu').click(MenuManager.show_prev_menu);
+        $('#next-menu').click(MenuManager.show_next_menu);
+        $(document).keydown(function (e) {
+            if (e.keyCode === 37) { // Left
+                MenuManager.show_prev_menu();
+            } else if (e.keyCode === 39) { // Right
+                MenuManager.show_next_menu();
             }
-            $('#myCarousel').carousel('prev');
-            return false;
         });
-        $('#next-menu').click(function (e) {
-            if ($('.item.active').index() == $('.item').length - 1) {
-                // Add placeholder div
-                var placeholder_contents = MenuManager.make_placeholder();
-                var placeholder = MenuManager.append_menu(placeholder_contents);
-                MenuManager.fill_placeholder(placeholder, MenuManager.newest_id, 'next');
+        // Listen to select a different location up and down
+        var lockAccordion = false;
+        $(document).keydown(function (e) {
+            if ((e.keyCode === 38 || e.keyCode === 40) && !lockAccordion) { // Up or Down
+                // Find accordion body that is in
+                var bodies = $('.item.active').find('.accordion-body');
+                for (var i = 0; i < bodies.length; i++) {
+                    var body = $(bodies[i]);
+                    if (body.hasClass('in')) {
+                        // If up key pressed, target previous entry, else target next entry
+                        var target = e.keyCode === 38 ? i-1 : i+1;
+                        if (0 <= target && target < bodies.length) {
+                            // If target is valid, hide current and show target
+                            var target_element = $(bodies[target])
+                            var data_obj = {
+                                parent: "#" + target_element.parent().parent().attr('id'),
+                                toggle:'collapse'
+                            }
+                            var options = target_element.data('collapse') ? 'toggle' : data_obj;
+                            target_element.collapse(options);
+                        }
+                        break;
+                    }
+                }
             }
-            $('#myCarousel').carousel('next');
-            return false;
+        });
+        $(document).bind('show', function (e) {
+            lockAccordion = true;
+        });
+        $(document).bind('shown', function (e) {
+            lockAccordion = false;
         });
     }
 };
 
 /*
  {
+ title: "MealTitle"
  menus: [
  [DCName, [Food1, Food2, ...]],
  ...
@@ -107,5 +150,5 @@ $(document).ready(function () {
     $('.carousel').carousel({
         interval:false
     });
-    MenuManager.slide_listener();
+    MenuManager.listen();
 });
