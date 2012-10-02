@@ -13,3 +13,8 @@
 #myCarousel {
     padding: 0 100px;
 }
+
+.menu-title {
+    text-align: center;
+    padding-bottom: 10px;
+}

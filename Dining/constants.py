@@ -24,4 +24,11 @@ meal_to_int = {
     'Brunch': BRUNCH,
     'Lunch': LUNCH,
     'Dinner': DINNER,
-    }
+}
+
+int_to_meal = [
+    "Breakfast",
+    "Brunch",
+    "Lunch",
+    "Dinner",
+]

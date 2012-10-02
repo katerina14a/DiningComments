@@ -41,13 +41,10 @@ def menus(request):
         prev_date = menu_date
     next_id = '%s %s' % (next_date.isoformat(), next_meal)
     prev_id = '%s %s' % (prev_date.isoformat(), prev_meal)
-    meal = meal_to_int[menu_meal]
-    dishes = Dish.objects.filter(date=menu_date, meal=meal)
-    meals = defaultdict(lambda: [])
-    for dish in dishes:
-        meals[int_to_dc[dish.place]].append(dish.food.name)
+    title, menus = Dish.getMenus(menu_date, menu_meal)
     rtn = {
-        'menus': meals.items(),
+        'title': title,
+        'menus': menus,
         'prev': prev_id,
         'next': next_id,
         }

@@ -1,16 +1,16 @@
 MenuManager = {
     menu_counter:0,
-    make_menus:function (menus) {
+    make_menus:function (menus, title) {
         var id = MenuManager.menu_counter++;
-        var container = $('<div class="accordion" id="menu' + id + '"></div>');
+        var accordion = $('<div class="accordion" id="menu' + id + '"></div>');
         $.map(menus, function (menu, i) {
-            var name = menu[0];
+            var location = menu[0];
             var food_list = menu[1];
-            container.append($(
+            accordion.append($(
                 '<div class="accordion-group">' +
                     '<div class="accordion-heading">' +
                     '<a class="accordion-toggle" data-toggle="collapse" data-parent="#menu' + id + '" href="#menu' + id + 'collapse' + i + '">' +
-                    name +
+                    location +
                     '</a>' +
                     '</div>' +
                     '<div id="menu' + id + 'collapse' + i + '" class="accordion-body collapse ' + (i === 0 ? 'in' : '') + '">' +
@@ -21,6 +21,10 @@ MenuManager = {
                     '</div>'
             ));
         });
+        var title_element = $('<h3 class="menu-title">' + title + '</h3>');
+        var container = $('<div></div>');
+        container.append(title_element);
+        container.append(accordion);
         return container;
     },
     make_placeholder:function () {
@@ -32,7 +36,7 @@ MenuManager = {
                 'menu_id':menu_id
             },
             success:function (data) {
-                placeholder.html(MenuManager.make_menus(data.menus));
+                placeholder.html(MenuManager.make_menus(data.menus, data.title));
                 if (direction === 'next') {
                     MenuManager.newest_id = data.next;
                 } else if (direction === 'prev') {
@@ -94,7 +98,7 @@ $(document).ready(function () {
     // Make menu accordion
     $.ajax("/fetch_menu", {
         success:function (data) {
-            var menus_obj = MenuManager.make_menus(data.menus);
+            var menus_obj = MenuManager.make_menus(data.menus, data.title);
             MenuManager.append_menu(menus_obj);
             MenuManager.oldest_id = data.prev;
             MenuManager.newest_id = data.next;
