@@ -1,4 +1,4 @@
-CARNIVORE = 0
+OMNIVORE = 0
 VEGETARIAN = 1
 VEGAN = 2
 
@@ -32,3 +32,5 @@ int_to_meal = [
     "Lunch",
     "Dinner",
 ]
+
+FOOD_LIST_DELIMITER = ' '

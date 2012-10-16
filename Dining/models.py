@@ -1,8 +1,7 @@
-from collections import defaultdict
 import datetime
 from django.db import models
 from constants import (
-    CARNIVORE,
+    OMNIVORE,
     VEGETARIAN,
     VEGAN,
     BREAKFAST,
@@ -15,10 +14,10 @@ from constants import (
     CLARK_KERR,
     meal_to_int,
     int_to_dc,
-)
+    FOOD_LIST_DELIMITER)
 
 dietary_restrictions_choices = (
-    (CARNIVORE, 'Carnivore'),
+    (OMNIVORE, 'Carnivore'),
     (VEGETARIAN, 'Vegetarian'),
     (VEGAN, 'Vegan'),
 )
@@ -44,14 +43,14 @@ class Food(models.Model):
     def __unicode__(self):
         return self.name
 
-class Dish(models.Model):
+class Meal(models.Model):
     date = models.DateField()
-    meal = models.IntegerField(choices=meal_choices)
+    name = models.IntegerField(choices=meal_choices)
     place = models.IntegerField(choices=place_choices)
-    food = models.ForeignKey(Food)
+    food_ids = models.TextField()
 
     def __unicode__(self):
-        return "%s meal %s, at %s serving %s" % (self.date, self.meal, self.place, self.food.name)
+        return "%s at %s on %s" % (self.name, self.place, self.date)
 
     @classmethod
     def format_date(cls, date):
@@ -71,24 +70,26 @@ class Dish(models.Model):
     @classmethod
     def getMenus(cls, date, meal):
         meal_int = meal_to_int[meal]
-        dishes = Dish.objects.filter(date=date, meal=meal_int)
+        meals = Meal.objects.filter(date=date, name=meal_int)
         if meal_int == LUNCH:
-            extra_dishes = Dish.objects.filter(date=date, meal=BRUNCH)
-            if dishes and extra_dishes:
+            extra_meals = Meal.objects.filter(date=date, name=BRUNCH)
+            if meals and extra_meals:
                 meal = "Lunch/Brunch"
-            elif dishes:
+            elif meals:
                 meal = "Lunch"
-            elif extra_dishes:
+            elif extra_meals:
                 meal = "Brunch"
-            dishes = dishes | extra_dishes
-        date = Dish.format_date(date)
+            meals = meals | extra_meals
+        date = Meal.format_date(date)
         title = "%s - %s" % (date, meal)
 
-        menus = defaultdict(lambda: [])
-        for dish in dishes:
-            menus[int_to_dc[dish.place]].append(dish.food.name)
+        menus = []
+        for m in meals:
+            food_ids = m.food_ids.split(FOOD_LIST_DELIMITER)
+            food = [Food.objects.get(id=int(id)).name for id in food_ids]
+            menus.append(([int_to_dc[m.place]], food))
 
-        return title, menus.items()
+        return title, menus
 
         # (title, [('location', [food, food, food,....]), ...])
 

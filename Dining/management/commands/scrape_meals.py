@@ -14,11 +14,12 @@ from Dining.constants import (
     BRUNCH,
     LUNCH,
     DINNER,
-    CARNIVORE,
+    OMNIVORE,
     VEGETARIAN,
     VEGAN,
+    FOOD_LIST_DELIMITER,
     )
-from Dining.models import Food, Dish
+from Dining.models import Food, Meal
 
 locations = {
     CROSSROADS: ["01", "CROSSROADS'"],
@@ -33,7 +34,7 @@ color_to_type = {
     #'008040': "Vegetarian",
     '000080': VEGETARIAN,
     '0000A0': VEGETARIAN,
-    '000000': CARNIVORE,
+    '000000': OMNIVORE,
     }
 
 def get_url(location, date):
@@ -61,10 +62,10 @@ def get_dates():
     return map(url2pathname, date_list)
 
 
-def get_dishes():
-    print "Retrieving Menus..."
-    dishes = []
+def sync():
+    print "Scraping Menus..."
     for date in get_dates():
+        date_obj = create_date_obj(date)
         for location in locations.iterkeys():
             url = get_url(location, date)
             f = urlopen(url)
@@ -73,18 +74,26 @@ def get_dishes():
             meals_search = re.compile("<td>\n.*?</td>", re.DOTALL)
             meals_html = meals_search.findall(data)
             for meal, meal_html in enumerate(meals_html):
-                for food_html in meal_html.split("</font></b></a>")[1:]:
-                    food_data = food_html.split("•<font color=#")[-1]
-                    try:
-                        color, name = food_data.split(">")
-                        dietary = color_to_type.get(color, CARNIVORE)
-                        dishes.append((date, convert_meal(meals_html, meal), location, name, dietary))
-                    except ValueError:
-                        pass
-
-    print "Adding to database."
-    return dishes
-
+                meal = convert_meal(meals_html, meal)
+                try:
+                    Meal.objects.get(date=date_obj, place=location, name=meal)
+                except Meal.DoesNotExist:
+                    food_list = []
+                    for food_html in meal_html.split("</font></b></a>")[1:]:
+                        food_data = food_html.split("•<font color=#")[-1]
+                        try:
+                            color, name = food_data.split(">")
+                            dietary = color_to_type.get(color, OMNIVORE)
+                            try:
+                                food_object = Food.objects.get(name=name)
+                            except Food.DoesNotExist:
+                                food_object = Food(name=name, dietary_restrictions=dietary)
+                                food_object.save()
+                            food_list.append(food_object.id)
+                        except ValueError:
+                            pass
+                    food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
+                    Meal(date=date_obj, place=location, name=meal, food_list=food_list_string).save()
 
 def convert_meal(meals, meal):
     convert_dict = {3: {0: BREAKFAST, 1: LUNCH, 2: DINNER, },
@@ -102,28 +111,6 @@ def create_date_obj(date_str):
         date_parts[2] = "20" + date_parts[2]
     date_parts = map(lambda x: int(x), date_parts)
     return datetime.date(date_parts[2], date_parts[0], date_parts[1])
-
-
-def sync():
-    for dish in get_dishes():
-        add_dish(dish)
-    print "Done."
-
-
-def add_dish(dish):
-    date, meal, location, name, dietary = dish
-    date = create_date_obj(date)
-    try:
-        food_object = Food.objects.get(name=name)
-    except Food.DoesNotExist:
-        food_object = Food(name=name, dietary_restrictions=dietary)
-        food_object.save()
-
-    try:
-        Dish.objects.get(date=date, meal=meal, place=location, food=food_object)
-    except Dish.DoesNotExist:
-        Dish(date=date, meal=meal, place=location, food=food_object).save()
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

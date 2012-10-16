@@ -1,10 +1,7 @@
-# Create your views here.
-from collections import defaultdict
 from datetime import date, timedelta
 from django.core.serializers import json
 from django.http import HttpResponse
-from Dining.constants import int_to_dc, meal_to_int
-from Dining.models import Dish
+from Dining.models import Meal
 from django.shortcuts import render_to_response
 
 def home(request):
@@ -41,7 +38,7 @@ def menus(request):
         prev_date = menu_date
     next_id = '%s %s' % (next_date.isoformat(), next_meal)
     prev_id = '%s %s' % (prev_date.isoformat(), prev_meal)
-    title, menus = Dish.getMenus(menu_date, menu_meal)
+    title, menus = Meal.getMenus(menu_date, menu_meal)
     rtn = {
         'title': title,
         'menus': menus,
