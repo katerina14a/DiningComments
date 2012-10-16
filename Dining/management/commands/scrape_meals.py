@@ -93,7 +93,7 @@ def sync():
                         except ValueError:
                             pass
                     food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
-                    Meal(date=date_obj, place=location, name=meal, food_list=food_list_string).save()
+                    Meal(date=date_obj, place=location, name=meal, food_ids=food_list_string).save()
 
 def convert_meal(meals, meal):
     convert_dict = {3: {0: BREAKFAST, 1: LUNCH, 2: DINNER, },
