@@ -1,3 +1,5 @@
+# coding=utf-8
+from collections import defaultdict
 import datetime
 from django.db import models
 from constants import (
@@ -86,11 +88,32 @@ class Meal(models.Model):
         menus = []
         for m in meals:
             food_ids = m.food_ids.split(FOOD_LIST_DELIMITER)
-            food = [Food.objects.get(id=int(id)).name for id in food_ids]
+            food_dict = defaultdict(lambda: [])
+            for id in food_ids:
+                name = Food.objects.get(id=int(id)).name
+                name_lower = name.lower()
+                if "pizza" in name_lower:
+                    food_dict["Pizza"].append(name)
+                elif "soup" in name_lower or "chowder" in name_lower or "bisque" in name_lower or "chili" in name_lower:
+                    food_dict["Soup"].append(name)
+                elif "HB" == name[:2]:
+                    food_dict["Dessert"].append(name[3:])
+                elif  "cookie" in name_lower or "yogurt" in name_lower or "sorbet" in name_lower or "tart" in name_lower:
+                    food_dict["Dessert"].append(name)
+                elif "salad" in name_lower:
+                    food_dict["Salad"].append(name)
+                else:
+                    food_dict["Entrée"].append(name)
+
+            keys = ["Entrée","Pizza","Salad","Soup","Dessert"]
+            food = []
+            for key in keys:
+                if food_dict[key]:
+                    food.append((key,food_dict[key]))
             menus.append(([int_to_dc[m.place]], food))
 
         return title, menus
 
-        # (title, [('location', [food, food, food,....]), ...])
+        # (title, [('location', [(category, [food, food, food,....]), (category, [food, food, food,....])]), ...])
 
 

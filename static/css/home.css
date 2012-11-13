@@ -40,3 +40,11 @@
 .carousel-control {
     top: 60px;
 }
+
+.accordion-inner li {
+    list-style: none;
+}
+
+.accordion-inner ul {
+    float: left;
+}

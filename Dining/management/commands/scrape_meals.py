@@ -31,7 +31,7 @@ locations = {
 color_to_type = {
     '800040': VEGAN,
     '008000': VEGETARIAN,
-    #'008040': "Vegetarian",
+#    '008040': "Vegetarian",
     '000080': VEGETARIAN,
     '0000A0': VEGETARIAN,
     '000000': OMNIVORE,
@@ -46,7 +46,7 @@ def get_url(location, date):
 
 
 def get_dates():
-    """Returns a list of dates (strings) for which menues are currently offered"""
+    """Returns a list of dates (strings) for which menus are currently offered"""
 
     current_time = localtime()
     todays_date = str(current_time[1]) + "/" + str(current_time[2]) + "/" + str(current_time[0])

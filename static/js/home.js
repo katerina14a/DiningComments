@@ -15,7 +15,7 @@ MenuManager = {
                     '</div>' +
                     '<div id="menu' + id + 'collapse' + i + '" class="accordion-body collapse' + (i === 0 ? ' in' : '') + '">' +
                     '<div class="accordion-inner">' +
-                    food_list.join("<br/>") +
+                    MenuManager.organize_food(food_list) +
                     '</div> ' +
                     '</div> ' +
                     '</div>'
@@ -26,6 +26,17 @@ MenuManager = {
         container.append(title_element);
         container.append(accordion);
         return container;
+    },
+    organize_food: function(food_list) {
+        var food_html = "";
+        $.map(food_list,function(food_tuple) {
+            food_html += "<ul><li><h4>" + food_tuple[0] + "</h4></li>";
+            $.map(food_tuple[1],function(name) {
+                food_html += "<li>" + name + "</li>";
+            });
+            food_html += "</ul>";
+        });
+        return food_html;
     },
     make_placeholder:function () {
         return $('<div class="loading">' +
@@ -132,7 +143,7 @@ MenuManager = {
  {
  title: "MealTitle"
  menus: [
- [DCName, [Food1, Food2, ...]],
+ (title, [('location', [(category, [food, food, food,....]), (category, [food, food, food,....])]), ...])
  ...
  ],
  next: "IDOfNextMenu",
