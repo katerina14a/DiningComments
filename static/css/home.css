@@ -18,3 +18,25 @@
     text-align: center;
     padding-bottom: 10px;
 }
+
+.loading {
+    margin: auto;
+    height: 150px;
+    text-align: center;
+}
+
+.loading h3 {
+    position: absolute;
+    width: 100%;
+}
+
+.loading img {
+    top: 30%;
+    position: absolute;
+    left: 50%;
+    margin-left: -12px;
+}
+
+.carousel-control {
+    top: 60px;
+}

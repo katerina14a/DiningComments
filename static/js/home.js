@@ -28,7 +28,10 @@ MenuManager = {
         return container;
     },
     make_placeholder:function () {
-        return $('<p>PLACEHOLDER</p>');
+        return $('<div class="loading">' +
+            '<h3>Loading...</h3>' +
+            '<img src="/static/img/menu-loader.gif"></img>' +
+            '</div>');
     },
     fill_placeholder:function (placeholder, menu_id, direction) {
         $.ajax('/fetch_menu', {
