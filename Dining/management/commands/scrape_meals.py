@@ -75,24 +75,26 @@ def sync():
             meals_html = meals_search.findall(data)
             for meal, meal_html in enumerate(meals_html):
                 meal = convert_meal(meals_html, meal)
-                try:
-                    Meal.objects.get(date=date_obj, place=location, name=meal)
-                except Meal.DoesNotExist:
-                    food_list = []
-                    for food_html in meal_html.split("</font></b></a>")[1:]:
-                        food_data = food_html.split("•<font color=#")[-1]
+                food_list = []
+                for food_html in meal_html.split("</font></b></a>")[1:]:
+                    food_data = food_html.split("•<font color=#")[-1]
+                    try:
+                        color, name = food_data.split(">")
+                        dietary = color_to_type.get(color, OMNIVORE)
                         try:
-                            color, name = food_data.split(">")
-                            dietary = color_to_type.get(color, OMNIVORE)
-                            try:
-                                food_object = Food.objects.get(name=name)
-                            except Food.DoesNotExist:
-                                food_object = Food(name=name, dietary_restrictions=dietary)
-                                food_object.save()
-                            food_list.append(food_object.id)
-                        except ValueError:
-                            pass
-                    food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
+                            food_object = Food.objects.get(name=name)
+                        except Food.DoesNotExist:
+                            food_object = Food(name=name, dietary_restrictions=dietary)
+                            food_object.save()
+                        food_list.append(food_object.id)
+                    except ValueError:
+                        pass
+                food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
+                try:
+                    existing_meal = Meal.objects.get(date=date_obj, place=location, name=meal)[0]
+                    existing_meal.food_ids = food_list_string
+                    existing_meal.save()
+                except Meal.DoesNotExist:
                     Meal(date=date_obj, place=location, name=meal, food_ids=food_list_string).save()
 
 def convert_meal(meals, meal):
