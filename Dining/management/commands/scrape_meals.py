@@ -91,7 +91,7 @@ def sync():
                         pass
                 food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
                 try:
-                    existing_meal = Meal.objects.get(date=date_obj, place=location, name=meal)[0]
+                    existing_meal = Meal.objects.get(date=date_obj, place=location, name=meal)
                     existing_meal.food_ids = food_list_string
                     existing_meal.save()
                 except Meal.DoesNotExist:
