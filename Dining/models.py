@@ -55,6 +55,18 @@ class Meal(models.Model):
         return "%s at %s on %s" % (self.name, self.place, self.date)
 
     @classmethod
+    def empty_meal(cls,meal,date):
+        meals = Meal.objects.filter(date=date, name=meal_to_int[meal])
+        if meals.exists():
+            return False
+        elif meal == 'Lunch':
+            meals = Meal.objects.filter(date=date, name=BRUNCH)
+            if meals.exists():
+                return False
+        return True
+
+
+    @classmethod
     def format_date(cls, date):
         today = datetime.date.today()
         one_day = datetime.timedelta(days=1)

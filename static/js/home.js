@@ -75,6 +75,9 @@ MenuManager = {
     },
     show_prev_menu:function () {
         if ($('.item.active').index() == 0) {
+            if (MenuManager.oldest_id === 'stop') {
+                return false;
+            }
             // Add placeholder div
             var placeholder_contents = MenuManager.make_placeholder();
             var placeholder = MenuManager.prepend_menu(placeholder_contents);
@@ -85,6 +88,9 @@ MenuManager = {
     },
     show_next_menu:function (e) {
         if ($('.item.active').index() == $('.item').length - 1) {
+            if (MenuManager.newest_id === 'stop') {
+                return false;
+            }
             // Add placeholder div
             var placeholder_contents = MenuManager.make_placeholder();
             var placeholder = MenuManager.append_menu(placeholder_contents);
