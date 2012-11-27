@@ -45,15 +45,17 @@ MenuManager = {
             '</div>');
     },
     fill_placeholder:function (placeholder, menu_id, direction) {
+        var params = menu_id === null ? {} : { 'menu_id':menu_id };
         $.ajax('/fetch_menu', {
-            data:{
-                'menu_id':menu_id
-            },
+            data:params,
             success:function (data) {
                 placeholder.html(MenuManager.make_menus(data.menus, data.title));
                 if (direction === 'next') {
                     MenuManager.newest_id = data.next;
                 } else if (direction === 'prev') {
+                    MenuManager.oldest_id = data.prev;
+                } else if (direction === 'both') {
+                    MenuManager.newest_id = data.next;
                     MenuManager.oldest_id = data.prev;
                 }
             }
@@ -158,15 +160,11 @@ MenuManager = {
  */
 
 $(document).ready(function () {
+    // Add placeholder div
+    var placeholder_contents = MenuManager.make_placeholder();
+    var placeholder = MenuManager.append_menu(placeholder_contents);
+    MenuManager.fill_placeholder(placeholder, null, 'both');
     // Make menu accordion
-    $.ajax("/fetch_menu", {
-        success:function (data) {
-            var menus_obj = MenuManager.make_menus(data.menus, data.title);
-            MenuManager.append_menu(menus_obj);
-            MenuManager.oldest_id = data.prev;
-            MenuManager.newest_id = data.next;
-        }
-    });
     $('.carousel').carousel({
         interval:false
     });
