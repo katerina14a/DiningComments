@@ -5,11 +5,14 @@
     <link rel="stylesheet" href="/static/css/bootstrap-responsive.css"/>
     <link rel="stylesheet" href="/static/css/bootstrap.css"/>
     <link rel="stylesheet" href="/static/css/home.css"/>
+    <script type="text/javascript">
+        username = {% if username %}"{{ username }}"{% else %}null{% endif %};
+    </script>
 </head>
 
 <body>
 <div id="header">
-    <div id="register-container"><a href="#" id="register">register</a></div>
+    <div id="user-container"></div>
     <h1>Dining Comments</h1>
 </div>
 <div id="content">

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import date, timedelta
 from django.core.serializers import json
@@ -9,7 +9,10 @@ from django.shortcuts import render_to_response
 
 @ensure_csrf_cookie
 def home(request):
-    return render_to_response('home.html')
+    variables = {}
+    if request.user.is_authenticated():
+        variables['username'] = request.user.username
+    return render_to_response('home.html', variables)
 
 def menus(request):
 
@@ -81,7 +84,20 @@ def register(request):
     email = request.POST['email']
     # Check to make sure stuffs is valid
     User.objects.create_user(username, email, password)
+    return login_user(request)
+
+
+def login_user(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    if not request.POST.get('remember', None):
+        request.session.set_expiry(0)
     user = authenticate(username=username, password=password)
     # Check authentication worked
     login(request, user)
+    return HttpResponse("ok", mimetype="text/plain")
+
+
+def logout_user(request):
+    logout(request)
     return HttpResponse("ok", mimetype="text/plain")

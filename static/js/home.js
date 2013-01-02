@@ -162,7 +162,7 @@ MenuManager = {
 Users = {
     register: function (username, password, email) {
         $.ajax({
-            url: "/register/",
+            url: "/register",
             type: "POST",
             data: {
                 'username': username,
@@ -171,9 +171,9 @@ Users = {
             },
             success: function (response) {
                 if (response === "ok") {
-                    console.log("Registered user " + username);
-                    Users.dialog.modal('hide');
                     // Successfully registered
+                    Users.dialog.modal('hide');
+                    Users.logged_in(username);
                 } else {
                     // Failed to register
                 }
@@ -183,19 +183,56 @@ Users = {
             }
         });
     },
+    login: function (username, password, remember) {
+        $.post(
+            "/login",
+            {
+                'username': username,
+                'password': password,
+                'remember': remember
+            },
+            function () {
+                Users.dialog.modal('hide');
+                Users.logged_in(username);
+            }
+        )
+
+    },
+    logged_in: function (username) {
+        window.username = username;
+        $('#user-container').html(
+            "<a href='/profile'>" + username + "</a> | <a href='#' id='logout'>Logout</a>"
+        );
+        Users.listen();
+    },
+    logout: function () {
+        // Don't know what happens if this fails. Oh well, I guess
+        $.post("/logout", {}, function () {
+            Users.logged_out();
+        });
+    },
+    logged_out: function () {
+        window.username = null;
+        $('#user-container').html(
+            "<a id='login' href='#'>Login</a> | <a id='register' href='#'>Register</a>"
+        );
+        Users.listen();
+    },
     listen: function () {
         $('#register').click(function () {
             var username = $("<input type='text' placeholder='Username'>"),
                 password = $("<input type='password' placeholder='Password'>"),
                 confirm_password = $("<input type='password' placeholder='Confirm Password'>"),
                 email = $("<input type='text' placeholder='Email'>"),
-                form = $("<form><input type='submit' style='position: absolute; left: -9999px'/></form>"),
+                register_button = $("<button class='btn' type='submit' style='float: right;'>Register</button>"),
+                form = $("<form></form>"),
                 cancel_callback = function () {};
 
             form.append(username);
             form.append(password);
             form.append(confirm_password);
             form.append(email);
+            form.append(register_button);
 
             var confirm_callback = function () {
                 // Check validity stuffs
@@ -209,12 +246,7 @@ Users = {
                 return false;
             };
 
-            var div = bootbox.dialog(form,
-                [{
-                    'label': "Register",
-                    'class': 'btn',
-                    'callback': confirm_callback
-                }],
+            var div = bootbox.dialog(form, [],
                 {
                     "header"  : "Create an Account",
                     // explicitly tell dialog NOT to show the dialog...
@@ -232,7 +264,7 @@ Users = {
                 // replicates the behaviour of a normal prompt()
                 form.submit(function(e) {
                     e.preventDefault();
-                    div.find(".btn").click();
+                    confirm_callback();
                 });
             });
 
@@ -240,6 +272,66 @@ Users = {
 
             // Don't do click behaviour
             return false;
+        });
+
+        $('#login').click(function () {
+            var username = $("<input type='text' placeholder='Username'>"),
+                password = $("<input type='password' placeholder='Password'>"),
+                remember = $("<input type='checkbox'>"),
+                checkbox_label = $("<label class='checkbox' style='float: left;'>Remember me</label>"),
+                login_button = $("<button class='btn' type='submit' style='float: right;'>Login</button>"),
+                form = $("<form></form>"),
+                cancel_callback = function () {};
+
+            checkbox_label.prepend(remember);
+
+            form.append(username);
+            form.append(password);
+            form.append(checkbox_label);
+            form.append(login_button);
+
+            var confirm_callback = function () {
+                // Check validity stuffs
+                Users.login(
+                    username.val(),
+                    password.val(),
+                    remember.val()
+                );
+
+                // Don't want the dialog to close until we have confirmation registration was successful
+                return false;
+            };
+
+            var div = bootbox.dialog(form, [],
+                {
+                    "header"  : "Login",
+                    // explicitly tell dialog NOT to show the dialog...
+                    "show"    : false,
+                    "onEscape": cancel_callback
+                }
+            );
+
+            Users.dialog = div;
+
+            div.on("shown", function() {
+                username.focus();
+
+                // ensure that submitting the form (e.g. with the enter key)
+                // replicates the behaviour of a normal prompt()
+                form.submit(function(e) {
+                    e.preventDefault();
+                    confirm_callback();
+                });
+            });
+
+            div.modal("show");
+
+            // Don't do click behaviour
+            return false;
+        });
+
+        $('#logout').click(function () {
+            Users.logout();
         });
     }
 };
@@ -288,5 +380,9 @@ $(document).ready(function () {
         interval:false
     });
     MenuManager.listen();
-    Users.listen();
+    if (window.username === null) {
+        Users.logged_out();
+    } else {
+        Users.logged_in(window.username);
+    }
 });
