@@ -159,7 +159,126 @@ MenuManager = {
  }
  */
 
+Users = {
+    register: function (username, password, email) {
+        $.ajax({
+            url: "/register/",
+            type: "POST",
+            data: {
+                'username': username,
+                'password': password,
+                'email': email
+            },
+            success: function (response) {
+                if (response === "ok") {
+                    console.log("Registered user " + username);
+                    Users.dialog.modal('hide');
+                    // Successfully registered
+                } else {
+                    // Failed to register
+                }
+            },
+            failure: function () {
+                // Failed to register
+            }
+        });
+    },
+    listen: function () {
+        $('#register').click(function () {
+            var username = $("<input type='text' placeholder='Username'>"),
+                password = $("<input type='password' placeholder='Password'>"),
+                confirm_password = $("<input type='password' placeholder='Confirm Password'>"),
+                email = $("<input type='text' placeholder='Email'>"),
+                form = $("<form><input type='submit' style='position: absolute; left: -9999px'/></form>"),
+                cancel_callback = function () {};
+
+            form.append(username);
+            form.append(password);
+            form.append(confirm_password);
+            form.append(email);
+
+            var confirm_callback = function () {
+                // Check validity stuffs
+                Users.register(
+                    username.val(),
+                    password.val(),
+                    email.val()
+                );
+
+                // Don't want the dialog to close until we have confirmation registration was successful
+                return false;
+            };
+
+            var div = bootbox.dialog(form,
+                [{
+                    'label': "Register",
+                    'class': 'btn',
+                    'callback': confirm_callback
+                }],
+                {
+                    "header"  : "Create an Account",
+                    // explicitly tell dialog NOT to show the dialog...
+                    "show"    : false,
+                    "onEscape": cancel_callback
+                }
+            );
+
+            Users.dialog = div;
+
+            div.on("shown", function() {
+                username.focus();
+
+                // ensure that submitting the form (e.g. with the enter key)
+                // replicates the behaviour of a normal prompt()
+                form.submit(function(e) {
+                    e.preventDefault();
+                    div.find(".btn").click();
+                });
+            });
+
+            div.modal("show");
+
+            // Don't do click behaviour
+            return false;
+        });
+    }
+};
+
+var csrfSetup = function () {
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+    $.ajaxSetup({
+        crossDomain: false, // obviates need for sameOrigin test
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type)) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+};
+
+
 $(document).ready(function () {
+    csrfSetup();
+
     // Add placeholder div
     var placeholder_contents = MenuManager.make_placeholder();
     var placeholder = MenuManager.append_menu(placeholder_contents);
@@ -169,4 +288,5 @@ $(document).ready(function () {
         interval:false
     });
     MenuManager.listen();
+    Users.listen();
 });

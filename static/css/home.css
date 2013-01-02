@@ -1,7 +1,15 @@
+#header {
+    padding-top: 10px;
+}
+
 #header h1 {
     text-align: center;
     padding-top: 10px;
     padding-bottom: 20px;
+}
+
+#register-container {
+    float: right;
 }
 
 .button {
@@ -47,4 +55,14 @@
 
 .accordion-inner ul {
     float: left;
+}
+
+/* Override default bootstrap settings */
+.modal {
+    width: 250px;
+    margin-left: -125px;
+}
+
+.modal form {
+    margin: 0;
 }

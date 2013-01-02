@@ -1,9 +1,13 @@
+from django.contrib.auth.models import User
+from django.contrib.auth import login, authenticate
+from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import date, timedelta
 from django.core.serializers import json
 from django.http import HttpResponse
 from Dining.models import Meal
 from django.shortcuts import render_to_response
 
+@ensure_csrf_cookie
 def home(request):
     return render_to_response('home.html')
 
@@ -69,3 +73,15 @@ def menus(request):
         'next': next_id,
         }
     return HttpResponse(json.simplejson.dumps(rtn), mimetype="application/json")
+
+
+def register(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    email = request.POST['email']
+    # Check to make sure stuffs is valid
+    User.objects.create_user(username, email, password)
+    user = authenticate(username=username, password=password)
+    # Check authentication worked
+    login(request, user)
+    return HttpResponse("ok", mimetype="text/plain")
