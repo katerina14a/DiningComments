@@ -76,6 +76,13 @@
     float: right;
 }
 
+.modal form div {
+    margin-top: 6px;
+    height: 14px;
+    width: 14px;
+    float: right;
+}
+
 #login-form input[type="text"] {
     width: 232px;
 }

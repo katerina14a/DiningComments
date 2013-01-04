@@ -218,11 +218,28 @@ Users = {
         );
         Users.listen();
     },
+    input_clear: function (div) {
+        div.attr({"class":""});
+        div.unbind('mouseover');
+    },
+    input_error: function (div, message) {
+        div.attr({"class":"icon-remove"});
+        div.mouseover(function (e) {
+            popup(message, 155);
+        });
+    },
+    input_okay: function (div) {
+        div.attr({"class":"icon-ok"});
+        div.unbind('mouseover');
+    },
     listen: function () {
         $('#register').click(function () {
             var username = $("<input type='text' placeholder='Username'>"),
+                username_info = $("<div></div>"),
                 password = $("<input type='password' placeholder='Password'>"),
+                password_info = $("<div></div>"),
                 confirm_password = $("<input type='password' placeholder='Confirm Password'>"),
+                confirm_password_info = $("<div></div>"),
                 email = $("<input type='text' placeholder='Email'>" +
                     "<a onmouseover=\"popup('<b>Optional:</b> Used for username and password recovery.')\">" +
                         "<img src='/static/img/question_mark.jpg'/>" +
@@ -232,18 +249,33 @@ Users = {
                 cancel_callback = function () {};
 
             form.append(username);
+            form.append(username_info);
             form.append(password);
+            form.append(password_info);
             form.append(confirm_password);
+            form.append(confirm_password_info);
             form.append(email);
             form.append(register_button);
 
             var confirm_callback = function () {
+                Users.input_clear(username_info);
+                Users.input_clear(password_info);
+                Users.input_clear(confirm_password_info);
                 // Check validity stuffs
-                Users.register(
-                    username.val(),
-                    password.val(),
-                    email.val()
-                );
+                if (username.val() !== "" && password.val() !== "") {
+                    Users.register(
+                        username.val(),
+                        password.val(),
+                        email.val()
+                    );
+                }
+                if (username.val() === "") {
+                    Users.input_error(username_info, "Username cannot be blank.");
+                }
+                if (password.val() === "" || confirm_password.val() === "") {
+                    Users.input_error(password_info, "Password cannot be blank.");
+                    Users.input_error(confirm_password_info, "Password cannot be blank.");
+                }
 
                 // Don't want the dialog to close until we have confirmation registration was successful
                 return false;
