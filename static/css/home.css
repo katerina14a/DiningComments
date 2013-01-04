@@ -60,10 +60,48 @@
 
 /* Override default bootstrap settings */
 .modal {
-    width: 250px;
-    margin-left: -125px;
+    width: 272px;
+    margin-left: -136px;
+}
+
+.modal img {
+    padding: 0 0 6px 6px;
 }
 
 .modal form {
     margin: 0;
+}
+
+.modal button {
+    float: right;
+}
+
+#login-form input[type="text"] {
+    width: 232px;
+}
+
+#login-form input[type="password"] {
+    width: 232px;
+}
+
+#register-form button {
+    margin-right: 21px;
+}
+
+/* CSS for popup.js from http://nicolashoening.de?twocents&nr=8 */
+#pup {
+    position:absolute;
+    z-index:1500;
+    padding: 3px;
+    margin-left: 5px;
+    margin-top: -15px;
+    width: 170px;
+    box-shadow: 0 0 0 3px rgba(150, 150, 150, 0.1), 0 0 2px rgba(0, 0, 0, 0.3);
+    color: #444;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    font-size: 0.95em;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
 }

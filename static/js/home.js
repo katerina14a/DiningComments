@@ -223,9 +223,12 @@ Users = {
             var username = $("<input type='text' placeholder='Username'>"),
                 password = $("<input type='password' placeholder='Password'>"),
                 confirm_password = $("<input type='password' placeholder='Confirm Password'>"),
-                email = $("<input type='text' placeholder='Email'>"),
-                register_button = $("<button class='btn' type='submit' style='float: right;'>Register</button>"),
-                form = $("<form></form>"),
+                email = $("<input type='text' placeholder='Email'>" +
+                    "<a onmouseover=\"popup('<b>Optional:</b> Used for username and password recovery.')\">" +
+                        "<img src='/static/img/question_mark.jpg'/>" +
+                    "</a>"),
+                register_button = $("<button class='btn' type='submit'>Register</button>"),
+                form = $("<form id='register-form'></form>"),
                 cancel_callback = function () {};
 
             form.append(username);
@@ -279,8 +282,8 @@ Users = {
                 password = $("<input type='password' placeholder='Password'>"),
                 remember = $("<input type='checkbox'>"),
                 checkbox_label = $("<label class='checkbox' style='float: left;'>Remember me</label>"),
-                login_button = $("<button class='btn' type='submit' style='float: right;'>Login</button>"),
-                form = $("<form></form>"),
+                login_button = $("<button class='btn' type='submit'>Login</button>"),
+                form = $("<form id='login-form'></form>"),
                 cancel_callback = function () {};
 
             checkbox_label.prepend(remember);
