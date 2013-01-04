@@ -281,6 +281,16 @@ Users = {
                 Users.password_match(password.val(), confirm_password.val(), confirm_password_info);
             });
 
+            //jquery shake function gotten from http://jsfiddle.net/JppPG/3/
+            $.fn.shake = function() {
+                this.each(function(i) {
+                    for (var x = 1; x <= 3; x++) {
+                        $(this).animate({ marginLeft: -161 }, 10).animate({ marginLeft: -136 }, 50).animate({ marginLeft: -111 }, 10).animate({ marginLeft: -136 }, 50);
+                    }
+                });
+                return this;
+            };
+
             var confirm_callback = function () {
                 Users.input_clear(username_info);
                 Users.input_clear(password_info);
@@ -308,6 +318,8 @@ Users = {
                         password.val(),
                         email.val()
                     );
+                } else {
+                    $('.modal').shake();
                 }
 
                 // Don't want the dialog to close until we have confirmation registration was successful
