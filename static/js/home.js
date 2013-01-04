@@ -232,6 +232,19 @@ Users = {
         div.attr({"class":"icon-ok"});
         div.unbind('mouseover');
     },
+    password_match: function (password, confirm, div, force_error) {
+        force_error = !!force_error;
+        if (password.length - confirm.length > 3 && !force_error) {
+            Users.input_clear(div);
+            return false;
+        } else if (password !== confirm) {
+            Users.input_error(div, "Passwords do not match.");
+            return false;
+        } else {
+            Users.input_okay(div);
+            return true;
+        }
+    },
     listen: function () {
         $('#register').click(function () {
             var username = $("<input type='text' placeholder='Username'>"),
@@ -246,7 +259,9 @@ Users = {
                     "</a>"),
                 register_button = $("<button class='btn' type='submit'>Register</button>"),
                 form = $("<form id='register-form'></form>"),
-                cancel_callback = function () {};
+                cancel_callback = function () {
+                    $('#pup').hide();
+                };
 
             form.append(username);
             form.append(username_info);
@@ -257,24 +272,42 @@ Users = {
             form.append(email);
             form.append(register_button);
 
+            password.keyup(function () {
+                if (confirm_password.val() !== "") {
+                    Users.password_match(password.val(), confirm_password.val(), confirm_password_info);
+                }
+            });
+            confirm_password.keyup(function () {
+                Users.password_match(password.val(), confirm_password.val(), confirm_password_info);
+            });
+
             var confirm_callback = function () {
                 Users.input_clear(username_info);
                 Users.input_clear(password_info);
                 Users.input_clear(confirm_password_info);
+
                 // Check validity stuffs
-                if (username.val() !== "" && password.val() !== "") {
+                var can_register = true;
+
+                if (!Users.password_match(password.val(), confirm_password.val(), confirm_password_info, true)) {
+                    can_register = false;
+                }
+                if (username.val() === "") {
+                    Users.input_error(username_info, "Username cannot be blank.");
+                    can_register = false;
+                }
+                if (password.val() === "") {
+                    Users.input_error(password_info, "Password cannot be blank.");
+                    Users.input_error(confirm_password_info, "Password cannot be blank.");
+                    can_register = false;
+                }
+                if (can_register) {
+                    $("#pup").hide();
                     Users.register(
                         username.val(),
                         password.val(),
                         email.val()
                     );
-                }
-                if (username.val() === "") {
-                    Users.input_error(username_info, "Username cannot be blank.");
-                }
-                if (password.val() === "" || confirm_password.val() === "") {
-                    Users.input_error(password_info, "Password cannot be blank.");
-                    Users.input_error(confirm_password_info, "Password cannot be blank.");
                 }
 
                 // Don't want the dialog to close until we have confirmation registration was successful
