@@ -6,6 +6,7 @@ from django.core.serializers import json
 from django.http import HttpResponse
 from Dining.models import Meal
 from django.shortcuts import render_to_response
+from django.core.validators import email_re
 
 @ensure_csrf_cookie
 def home(request):
@@ -83,6 +84,23 @@ def register(request):
     password = request.POST['password']
     email = request.POST['email']
     # Check to make sure stuffs is valid
+    errors = {}
+    if not email_re.match(email):
+        errors['email'] = "Invalid email format."
+    else:
+        try:
+            User.objects.get(email=email)
+            errors['email'] = "Email is already taken."
+        except User.DoesNotExist:
+            pass
+    try:
+        User.objects.get(username=username)
+        errors['username'] = "Username is already taken."
+    except User.DoesNotExist:
+        pass
+
+    if errors:
+        return HttpResponse(json.simplejson.dumps(errors), mimetype="application/json")
     User.objects.create_user(username, email, password)
     return login_user(request)
 
