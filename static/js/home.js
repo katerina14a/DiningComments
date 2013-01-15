@@ -160,7 +160,7 @@ MenuManager = {
  */
 
 Users = {
-    register: function (username, password, email) {
+    register: function (username, username_info, password, password_info, email, email_info) {
         $.ajax({
             url: "/register",
             type: "POST",
@@ -176,6 +176,18 @@ Users = {
                     Users.logged_in(username);
                 } else {
                     // Failed to register
+                    $.each(response, function (field, message) {
+                        var div;
+                        if (field === "email") {
+                            div = email_info;
+                        } else if (field === "username") {
+                            div = username_info;
+                        } else if (field === "password") {
+                            div = password_info;
+                        }
+                        Users.info_error(div, message);
+                    });
+                    Users.dialog.shake();
                 }
             },
             failure: function () {
@@ -218,30 +230,39 @@ Users = {
         );
         Users.listen();
     },
-    input_clear: function (div) {
+    info_clear: function (div) {
+        div.html("");
         div.attr({"class":""});
         div.unbind('mouseover');
     },
-    input_error: function (div, message) {
+    info_error: function (div, message) {
+        Users.info_clear(div);
         div.attr({"class":"icon-remove"});
         div.mouseover(function (e) {
             popup(message, 155);
         });
     },
-    input_okay: function (div) {
+    info_okay: function (div) {
+        Users.info_clear(div);
         div.attr({"class":"icon-ok"});
         div.unbind('mouseover');
+    },
+    info_email: function (div) {
+        Users.info_clear(div);
+        div.html($("<a onmouseover=\"popup('<b>Optional:</b> Used for username and password recovery.')\">" +
+            "<img src='/static/img/question_mark.jpg'/>" +
+            "</a>"));
     },
     password_match: function (password, confirm, div, force_error) {
         force_error = !!force_error;
         if (password.length - confirm.length > 3 && !force_error) {
-            Users.input_clear(div);
+            Users.info_clear(div);
             return false;
         } else if (password !== confirm) {
-            Users.input_error(div, "Passwords do not match.");
+            Users.info_error(div, "Passwords do not match.");
             return false;
         } else {
-            Users.input_okay(div);
+            Users.info_okay(div);
             return true;
         }
     },
@@ -253,15 +274,14 @@ Users = {
                 password_info = $("<div></div>"),
                 confirm_password = $("<input type='password' placeholder='Confirm Password'>"),
                 confirm_password_info = $("<div></div>"),
-                email = $("<input type='text' placeholder='Email'>" +
-                    "<a onmouseover=\"popup('<b>Optional:</b> Used for username and password recovery.')\">" +
-                        "<img src='/static/img/question_mark.jpg'/>" +
-                    "</a>"),
+                email = $("<input type='text' placeholder='Email'>"),
+                email_info = $("<div></div>"),
                 register_button = $("<button class='btn' type='submit'>Register</button>"),
                 form = $("<form id='register-form'></form>"),
                 cancel_callback = function () {
                     $('#pup').hide();
                 };
+
 
             form.append(username);
             form.append(username_info);
@@ -270,8 +290,14 @@ Users = {
             form.append(confirm_password);
             form.append(confirm_password_info);
             form.append(email);
+            form.append(email_info);
             form.append(register_button);
 
+            username.keyup(function () {
+                if (username.val() !== "") {
+                    Users.info_clear(username_info);
+                }
+            });
             password.keyup(function () {
                 if (confirm_password.val() !== "") {
                     Users.password_match(password.val(), confirm_password.val(), confirm_password_info);
@@ -280,21 +306,15 @@ Users = {
             confirm_password.keyup(function () {
                 Users.password_match(password.val(), confirm_password.val(), confirm_password_info);
             });
-
-            //jquery shake function gotten from http://jsfiddle.net/JppPG/3/
-            $.fn.shake = function() {
-                this.each(function(i) {
-                    for (var x = 1; x <= 3; x++) {
-                        $(this).animate({ marginLeft: -161 }, 10).animate({ marginLeft: -136 }, 50).animate({ marginLeft: -111 }, 10).animate({ marginLeft: -136 }, 50);
-                    }
-                });
-                return this;
-            };
+            Users.info_email(email_info);
+            email.keydown(function () {
+                Users.info_email(email_info);
+            });
 
             var confirm_callback = function () {
-                Users.input_clear(username_info);
-                Users.input_clear(password_info);
-                Users.input_clear(confirm_password_info);
+                Users.info_clear(username_info);
+                Users.info_clear(password_info);
+                Users.info_clear(confirm_password_info);
 
                 // Check validity stuffs
                 var can_register = true;
@@ -303,20 +323,23 @@ Users = {
                     can_register = false;
                 }
                 if (username.val() === "") {
-                    Users.input_error(username_info, "Username cannot be blank.");
+                    Users.info_error(username_info, "Username cannot be blank.");
                     can_register = false;
                 }
                 if (password.val() === "") {
-                    Users.input_error(password_info, "Password cannot be blank.");
-                    Users.input_error(confirm_password_info, "Password cannot be blank.");
+                    Users.info_error(password_info, "Password cannot be blank.");
+                    Users.info_error(confirm_password_info, "Password cannot be blank.");
                     can_register = false;
                 }
                 if (can_register) {
                     $("#pup").hide();
                     Users.register(
                         username.val(),
+                        username_info,
                         password.val(),
-                        email.val()
+                        password_info,
+                        email.val(),
+                        email_info
                     );
                 } else {
                     $('.modal').shake();
@@ -465,4 +488,19 @@ $(document).ready(function () {
     } else {
         Users.logged_in(window.username);
     }
+
+    //jquery shake function gotten from http://jsfiddle.net/JppPG/3/
+    $.fn.shake = function() {
+        var distance = 10;
+        this.each(function(i) {
+            var init_margin = parseFloat($(this).css("marginLeft"));
+            for (var x = 1; x <= 2; x++) {
+                $(this).animate({ marginLeft: init_margin - distance }, 10)
+                    .animate({ marginLeft: init_margin }, 50)
+                    .animate({ marginLeft: init_margin + distance }, 10)
+                    .animate({ marginLeft: init_margin }, 50);
+            }
+        });
+        return this;
+    };
 });

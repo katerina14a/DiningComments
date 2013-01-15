@@ -85,19 +85,27 @@ def register(request):
     email = request.POST['email']
     # Check to make sure stuffs is valid
     errors = {}
-    if not email_re.match(email):
-        errors['email'] = "Invalid email format."
+    if email:
+        if not email_re.match(email):
+            errors['email'] = "Invalid email format."
+        else:
+            try:
+                User.objects.get(email=email)
+                errors['email'] = "Email is already taken."
+            except User.DoesNotExist:
+                pass
+
+    if not username:
+        errors['username'] = "Username cannot be blank."
     else:
         try:
-            User.objects.get(email=email)
-            errors['email'] = "Email is already taken."
+            User.objects.get(username=username)
+            errors['username'] = "Username is already taken."
         except User.DoesNotExist:
             pass
-    try:
-        User.objects.get(username=username)
-        errors['username'] = "Username is already taken."
-    except User.DoesNotExist:
-        pass
+
+    if not password:
+        errors['password'] = "Password cannot be blank."
 
     if errors:
         return HttpResponse(json.simplejson.dumps(errors), mimetype="application/json")
