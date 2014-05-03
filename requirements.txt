@@ -1,5 +1,8 @@
 Django==1.4.1
+argparse==1.2.1
+beautifulsoup4==4.3.2
 dj-database-url==0.2.1
-psycopg2==2.4.5
-newrelic
 gunicorn==0.14.6
+newrelic==2.18.1.15
+psycopg2==2.4.5
+wsgiref==0.1.2

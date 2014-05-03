@@ -20,22 +20,23 @@ from Dining.constants import (
     FOOD_LIST_DELIMITER,
     )
 from Dining.models import Food, Meal
+from bs4 import BeautifulSoup
 
 locations = {
     CROSSROADS: ["01", "CROSSROADS'"],
     CAFE_3: ["03", "CAFE"],
     FOOTHILL: ["06", "FOOTHILL'"],
     CLARK_KERR: ["04", "CLARK"],
-    }
+}
 
 color_to_type = {
-    '800040': VEGAN,
-    '008000': VEGETARIAN,
-#    '008040': "Vegetarian",
-    '000080': VEGETARIAN,
-    '0000A0': VEGETARIAN,
-    '000000': OMNIVORE,
-    }
+    '#800040': VEGAN,
+    '#008000': VEGETARIAN,
+    '#000080': VEGETARIAN,
+    '#0000A0': VEGETARIAN,
+    '#000000': OMNIVORE,
+}
+
 
 def get_url(location, date):
     """Returns a URL (string) for the menu of the DC on the specified date"""
@@ -62,6 +63,14 @@ def get_dates():
     return map(url2pathname, date_list)
 
 
+def uniq(food_list):
+    output = []
+    for x in food_list:
+        if x not in output:
+            output.append(x)
+    return output
+
+
 def sync():
     print "Scraping Menus..."
     for date in get_dates():
@@ -71,38 +80,53 @@ def sync():
             f = urlopen(url)
             data = f.read()
             f.close()
-            meals_search = re.compile("<td>\n.*?</td>", re.DOTALL)
-            meals_html = meals_search.findall(data)
-            for meal, meal_html in enumerate(meals_html):
-                meal = convert_meal(meals_html, meal)
+            soup = BeautifulSoup(data)
+            table = soup.find_all('td', {"id": "content"})[1].table
+            rows = table.find_all('tr', recursive=False)
+
+            # rows[0] - meal index ie Breakfast
+            # rows[1] - foods
+            meal_names = rows[0].find_all('b')
+            for col in range(len(meal_names)):
                 food_list = []
-                for food_html in meal_html.split("</font></b></a>")[1:]:
-                    food_data = food_html.split("•<font color=#")[-1]
+                meal_name = meal_names[col].string
+                if meal_name.lower() == "breakfast":
+                    meal_index = BREAKFAST
+                elif meal_name.lower() == "lunch":
+                    meal_index = LUNCH
+                elif meal_name.lower() == "brunch":
+                    meal_index = BRUNCH
+                elif meal_name.lower() == "dinner":
+                    meal_index = DINNER
+                else:
+                    # that is not a meal - should never happen unless they decide to change their website
+                    pass
+
+                # getting food items for the above meal
+                food_items_list = rows[1].find_all('a')
+                for item in food_items_list:
+                    color = item.find('font')['color']
+                    name = item.find('font').string
+                    name = str(name)
+                    dietary = color_to_type.get(color, OMNIVORE)
                     try:
-                        color, name = food_data.split(">")
-                        dietary = color_to_type.get(color, OMNIVORE)
-                        try:
-                            food_object = Food.objects.get(name=name)
-                        except Food.DoesNotExist:
-                            food_object = Food(name=name, dietary_restrictions=dietary)
-                            food_object.save()
-                        food_list.append(food_object.id)
-                    except ValueError:
-                        pass
+                        food_object = Food.objects.get(name=name)
+                    except Food.DoesNotExist:
+                        food_object = Food(name=name, dietary_restrictions=dietary)
+                        food_object.save()
+                    food_list.append(food_object.id)
+
+                if not food_list:
+                    continue
+
+                food_list = uniq(food_list)
                 food_list_string = FOOD_LIST_DELIMITER.join(map(str, food_list))
                 try:
-                    existing_meal = Meal.objects.get(date=date_obj, place=location, name=meal)
+                    existing_meal = Meal.objects.get(date=date_obj, place=location, name=meal_index)
                     existing_meal.food_ids = food_list_string
                     existing_meal.save()
                 except Meal.DoesNotExist:
-                    Meal(date=date_obj, place=location, name=meal, food_ids=food_list_string).save()
-
-def convert_meal(meals, meal):
-    convert_dict = {3: {0: BREAKFAST, 1: LUNCH, 2: DINNER, },
-                    2: {0: BRUNCH, 1: DINNER, },
-                    1: {0: DINNER, }
-    }
-    return convert_dict[len(meals)][meal]
+                    Meal(date=date_obj, place=location, name=meal_index, food_ids=food_list_string).save()
 
 
 def create_date_obj(date_str):
@@ -113,6 +137,7 @@ def create_date_obj(date_str):
         date_parts[2] = "20" + date_parts[2]
     date_parts = map(lambda x: int(x), date_parts)
     return datetime.date(date_parts[2], date_parts[0], date_parts[1])
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

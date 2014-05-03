@@ -101,8 +101,8 @@ class Meal(models.Model):
         for m in meals:
             food_ids = m.food_ids.split(FOOD_LIST_DELIMITER)
             food_dict = defaultdict(lambda: [])
-            for id in food_ids:
-                name = Food.objects.get(id=int(id)).name
+            for food_id in food_ids:
+                name = Food.objects.get(id=int(food_id)).name
                 name_lower = name.lower()
                 if "pizza" in name_lower:
                     food_dict["Pizza"].append(name)
@@ -110,7 +110,7 @@ class Meal(models.Model):
                     food_dict["Soup"].append(name)
                 elif "HB" == name[:2]:
                     food_dict["Dessert"].append(name[3:])
-                elif  "cookie" in name_lower or "yogurt" in name_lower or "sorbet" in name_lower or "tart" in name_lower or "choc" in name_lower:
+                elif "cookie" in name_lower or "yogurt" in name_lower or "sorbet" in name_lower or "tart" in name_lower or "choc" in name_lower:
                     food_dict["Dessert"].append(name)
                 elif "salad" in name_lower or "Sld" in name:
                     food_dict["Salad"].append(name)
